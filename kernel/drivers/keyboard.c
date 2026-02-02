@@ -85,9 +85,9 @@ static void handle_scancode(uint8_t sc)
 
 void irq_keyboard_handler(void)
 {
-    pic_eoi(1);
-    uint8_t sc = inb(KB_DATA);
+    uint8_t sc = inb(KB_DATA);  /* Read scancode first */
     handle_scancode(sc);
+    pic_eoi(1);                  /* Send EOI after processing */
 }
 
 bool keyboard_getchar(char *c)

@@ -66,15 +66,22 @@ void syscall_handler(void *frame_ptr)
         size_t n = 0;
         while (n < count) {
             char ch;
+            /* Enable interrupts while waiting for input */
+            __asm__ volatile ("sti");
             while (!keyboard_getchar(&ch)) {
                 if (serial_getchar(&ch)) break;
-                __asm__ volatile ("pause");
+                __asm__ volatile ("hlt");  /* Wait for interrupt */
             }
             buf[n++] = ch;
             /* Echo input so user can see what they type */
             char tmp[2] = { ch, '\0' };
             vga_puts(tmp);
-            if (ch == '\n' || ch == '\r') break;
+            serial_putc(ch);
+            if (ch == '\n' || ch == '\r') {
+                vga_puts("\r\n");
+                serial_puts("\r\n");
+                break;
+            }
         }
         f[3] = n;
         break;

@@ -22,12 +22,23 @@ void pit_init(void)
 }
 
 static volatile uint64_t ticks;
+static volatile int sched_pending;
 
 void irq_pit_handler(void)
 {
-    pic_eoi(0);
     ticks++;
-    sched_schedule();
+    pic_eoi(0);
+    /* Don't call scheduler directly from IRQ - just mark pending */
+    sched_pending = 1;
 }
 
 uint64_t pit_ticks(void) { return ticks; }
+
+int pit_need_sched(void)
+{
+    if (sched_pending) {
+        sched_pending = 0;
+        return 1;
+    }
+    return 0;
+}

@@ -8,10 +8,17 @@ extern next_is_user
 
 switch_to:
     ; rdi = old, rsi = next
-    ; Save current rsp to old->kernel_rsp
+    ; Save current state to old->kernel_rsp
     test rdi, rdi
     jz .load_next
-    mov [rdi], rsp
+    ; Save callee-saved registers before switching
+    push r15
+    push r14
+    push r13
+    push r12
+    push rbp
+    push rbx
+    mov [rdi], rsp    ; save current stack pointer
 .load_next:
     ; Set current_pcb = next
     mov [rel current_pcb], rsi
@@ -23,26 +30,33 @@ switch_to:
     ; Load next->cr3
     mov rax, [rsi + 8]
     mov cr3, rax
-    ; Restore registers
-    pop rax
-    pop rbx
-    pop rcx
-    pop rdx
-    pop rsi
-    pop rdi
-    pop rbp
-    pop r8
-    pop r9
-    pop r10
-    pop r11
-    pop r12
-    pop r13
-    pop r14
-    pop r15
     ; Check if user mode
     mov al, [rel next_is_user]
     test al, al
     jnz .do_iret
+    ; Kernel task: restore callee-saved registers and return
+    pop rbx
+    pop rbp
+    pop r12
+    pop r13
+    pop r14
+    pop r15
     ret
 .do_iret:
+    ; User task: restore all registers then iret
+    pop r15
+    pop r14
+    pop r13
+    pop r12
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rbp
+    pop rdi
+    pop rsi
+    pop rdx
+    pop rcx
+    pop rbx
+    pop rax
     iretq

@@ -25,20 +25,20 @@ ISR_NOERR 4
 ISR_NOERR 5
 ISR_NOERR 6
 ISR_NOERR 7
-ISR_NOERR 8
-ISR_ERR   9
-ISR_ERR  10
-ISR_ERR  11
-ISR_ERR  12
-ISR_ERR  13
-ISR_ERR  14
+ISR_ERR   8   ; Double Fault has error code
+ISR_NOERR 9
+ISR_ERR  10   ; Invalid TSS
+ISR_ERR  11   ; Segment Not Present
+ISR_ERR  12   ; Stack-Segment Fault
+ISR_ERR  13   ; General Protection Fault
+ISR_ERR  14   ; Page Fault
 ISR_NOERR 15
 ISR_NOERR 16
-ISR_ERR  17
+ISR_ERR  17   ; Alignment Check
 ISR_NOERR 18
 ISR_NOERR 19
 ISR_NOERR 20
-ISR_NOERR 21
+ISR_ERR  21   ; Control Protection (some CPUs)
 ISR_NOERR 22
 ISR_NOERR 23
 ISR_NOERR 24
@@ -47,7 +47,7 @@ ISR_NOERR 26
 ISR_NOERR 27
 ISR_NOERR 28
 ISR_NOERR 29
-ISR_ERR  30
+ISR_ERR  30   ; Security Exception
 ISR_NOERR 31
 ; IRQs 32-47
 %assign i 32

@@ -46,6 +46,7 @@ static void kernel_init_early(uintptr_t multiboot_info_phys)
     __asm__ volatile ("sti");
     vga_puts("REPL ready. Type 'hello' or 'help'.\r\n");
     serial_puts("REPL ready.\r\n");
+    /* Start first user task */
     sched_schedule();
 }
 
@@ -53,5 +54,11 @@ void kernel_main(uint32_t magic, uint32_t info_phys)
 {
     (void)magic;
     kernel_init_early((uintptr_t)info_phys);
-    for (;;) __asm__ volatile ("hlt");
+    /* Main kernel loop - handle deferred scheduling */
+    for (;;) {
+        __asm__ volatile ("hlt");
+        if (pit_need_sched()) {
+            sched_schedule();
+        }
+    }
 }

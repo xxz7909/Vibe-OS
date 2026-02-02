@@ -32,9 +32,14 @@ pcb_t *pcb_create_kernel(void (*entry)(void))
     void *kstack = pmm_alloc_page();
     if (!kstack) return NULL;
     uint64_t *sp = (uint64_t *)((char *)kstack + KERNEL_STACK_SIZE);
-    *--sp = entry ? (uint64_t)entry : 0;
-    *--sp = 0; *--sp = 0; *--sp = 0; *--sp = 0; *--sp = 0; *--sp = 0; *--sp = 0;
-    *--sp = 0; *--sp = 0; *--sp = 0; *--sp = 0; *--sp = 0; *--sp = 0; *--sp = 0;
+    /* Stack frame for kernel task: return address + callee-saved registers */
+    *--sp = entry ? (uint64_t)entry : 0;  /* return address */
+    *--sp = 0;  /* r15 */
+    *--sp = 0;  /* r14 */
+    *--sp = 0;  /* r13 */
+    *--sp = 0;  /* r12 */
+    *--sp = 0;  /* rbp */
+    *--sp = 0;  /* rbx */
     p->kernel_rsp = (uint64_t)sp;
     return p;
 }
@@ -68,14 +73,30 @@ pcb_t *pcb_create_user(void *code, size_t code_size)
     if (!kstack) return NULL;
     uint64_t *sp = (uint64_t *)((char *)kstack + KERNEL_STACK_SIZE);
     uint64_t user_cs = 0x23, user_ss = 0x1b, user_rflags = 0x202;  /* GDT: code=0x20|3, data=0x18|3 */
-    /* Build iret frame: ss, rsp, rflags, cs, rip */
-    *--sp = user_ss;
-    *--sp = p->user_rsp;
-    *--sp = user_rflags;
-    *--sp = user_cs;
-    *--sp = p->user_rip;
-    /* Push 15 zeros for registers: r15,r14,r13,r12,r11,r10,r9,r8,rbp,rdi,rsi,rdx,rcx,rbx,rax */
-    for (int i = 0; i < 15; i++) *--sp = 0;
+    /* Build iret frame: ss, rsp, rflags, cs, rip (pushed in reverse order) */
+    *--sp = user_ss;           /* SS */
+    *--sp = p->user_rsp;       /* RSP */
+    *--sp = user_rflags;       /* RFLAGS */
+    *--sp = user_cs;           /* CS */
+    *--sp = p->user_rip;       /* RIP */
+    /* Push registers in REVERSE order of switch.asm pop sequence */
+    /* switch.asm pops: r15,r14,r13,r12,r11,r10,r9,r8,rbp,rdi,rsi,rdx,rcx,rbx,rax */
+    /* So we push: rax,rbx,rcx,rdx,rsi,rdi,rbp,r8,r9,r10,r11,r12,r13,r14,r15 */
+    *--sp = 0;  /* rax - popped last */
+    *--sp = 0;  /* rbx */
+    *--sp = 0;  /* rcx */
+    *--sp = 0;  /* rdx */
+    *--sp = 0;  /* rsi */
+    *--sp = 0;  /* rdi */
+    *--sp = 0;  /* rbp */
+    *--sp = 0;  /* r8 */
+    *--sp = 0;  /* r9 */
+    *--sp = 0;  /* r10 */
+    *--sp = 0;  /* r11 */
+    *--sp = 0;  /* r12 */
+    *--sp = 0;  /* r13 */
+    *--sp = 0;  /* r14 */
+    *--sp = 0;  /* r15 - popped first */
     p->kernel_rsp = (uint64_t)sp;
     return p;
 }
