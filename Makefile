@@ -18,10 +18,9 @@ ISR_OBJ    = build/isr.o
 SWITCH_OBJ = build/switch.o
 SYSCALL_ASM = build/syscall_entry.o
 KERNEL_OBJS = build/kernel.o build/pmm.o build/vmm.o build/idt.o \
-	build/vga.o build/serial.o build/pic.o build/pit.o build/keyboard.o build/string.o \
-	build/pcb.o build/sched.o build/syscall.o build/shell_embed.o build/ide.o build/fs.o build/pci.o build/e1000.o
+	build/vga.o build/serial.o build/pic.o build/pit.o build/keyboard.o build/string.o
 
-OBJS = $(BOOT_OBJ) $(ISR_OBJ) $(SWITCH_OBJ) $(SYSCALL_ASM) $(KERNEL_OBJS)
+OBJS = $(BOOT_OBJ) $(ISR_OBJ) $(KERNEL_OBJS)
 
 all: $(ISO)
 
