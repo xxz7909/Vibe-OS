@@ -138,7 +138,3 @@ void kernel_main(uint32_t magic, uint32_t info_phys)
     
     kernel_repl();  /* Run kernel-mode REPL */
 }
-            sched_schedule();
-        }
-    }
-}
